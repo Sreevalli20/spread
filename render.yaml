@@ -24,7 +24,7 @@ services:
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
       - key: FRONTEND_ORIGIN
-        value: https://decisionlens-frontend.onrender.com
+        value: https://decisionlens-two.vercel.app,http://localhost:5173
       - key: PORT
         value: 10000
     healthCheckPath: /api/health
