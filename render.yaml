@@ -13,7 +13,7 @@ services:
       - key: GROQ_MODEL
         value: openai/gpt-oss-20b
       - key: FRONTEND_ORIGIN
-        value: https://decisionlens-two.vercel.app,http://localhost:5173
+        value: https://spread2.vercel.app,http://localhost:5173
       - key: PORT
         value: 10000
     healthCheckPath: /api/health
