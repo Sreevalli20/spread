@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import AppShell from "./components/AppShell";
 import LandingPage from "./pages/LandingPage";
 import UploadPage from "./pages/UploadPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -12,38 +11,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route 
-          path="/analyze" 
-          element={
-            <AppShell showSidebar={true}>
-              <UploadPage />
-            </AppShell>
-          } 
-        />
-        <Route 
-          path="/dashboard" 
-          element={
-            <AppShell showSidebar={true}>
-              <DashboardPage />
-            </AppShell>
-          } 
-        />
-        <Route 
-          path="/ask" 
-          element={
-            <AppShell showSidebar={true}>
-              <AskPage />
-            </AppShell>
-          } 
-        />
-        <Route 
-          path="/report" 
-          element={
-            <AppShell showSidebar={true}>
-              <ReportPage />
-            </AppShell>
-          } 
-        />
+        <Route path="/analyze" element={<UploadPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/ask" element={<AskPage />} />
+        <Route path="/report" element={<ReportPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
