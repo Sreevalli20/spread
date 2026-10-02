@@ -134,24 +134,18 @@ Respond with valid JSON only."""
             content = response.choices[0].message.content
             parsed = json.loads(content)
 
-            # Validate evidence and finding IDs
+            # Validate evidence and finding IDs - filter out invalid IDs
             valid_evidence_ids = set(evidence.keys())
             valid_finding_ids = {f['id'] for f in findings}
 
-            # Check insights
+            # Filter insights to only include valid IDs
             for insight in parsed.get('insights', []):
-                for eid in insight.get('evidence_ids', []):
-                    if eid not in valid_evidence_ids:
-                        raise ValueError(f"Invalid evidence ID in insight: {eid}")
-                for fid in insight.get('finding_ids', []):
-                    if fid not in valid_finding_ids:
-                        raise ValueError(f"Invalid finding ID in insight: {fid}")
+                insight['evidence_ids'] = [eid for eid in insight.get('evidence_ids', []) if eid in valid_evidence_ids]
+                insight['finding_ids'] = [fid for fid in insight.get('finding_ids', []) if fid in valid_finding_ids]
 
-            # Check recommendations
+            # Filter recommendations to only include valid IDs
             for rec in parsed.get('recommendations', []):
-                for eid in rec.get('evidence_ids', []):
-                    if eid not in valid_evidence_ids:
-                        raise ValueError(f"Invalid evidence ID in recommendation: {eid}")
+                rec['evidence_ids'] = [eid for eid in rec.get('evidence_ids', []) if eid in valid_evidence_ids]
 
             # Validate with Pydantic
             validated = AIInsightResponse(**parsed)
@@ -233,17 +227,12 @@ Respond with valid JSON only."""
             content = response.choices[0].message.content
             parsed = json.loads(content)
 
-            # Validate IDs
+            # Validate IDs - filter out invalid IDs
             valid_evidence_ids = set(evidence.keys())
             valid_finding_ids = {f['id'] for f in findings}
 
-            for eid in parsed.get('evidence_ids', []):
-                if eid not in valid_evidence_ids:
-                    parsed['evidence_ids'].remove(eid)
-
-            for fid in parsed.get('finding_ids', []):
-                if fid not in valid_finding_ids:
-                    parsed['finding_ids'].remove(fid)
+            parsed['evidence_ids'] = [eid for eid in parsed.get('evidence_ids', []) if eid in valid_evidence_ids]
+            parsed['finding_ids'] = [fid for fid in parsed.get('finding_ids', []) if fid in valid_finding_ids]
 
             return parsed
 
