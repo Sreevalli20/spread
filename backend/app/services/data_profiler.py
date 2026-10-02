@@ -112,10 +112,10 @@ class DataProfiler:
 
     def _is_date_column(self, series: pd.Series) -> bool:
         try:
-            # Try to parse as datetime
-            pd.to_datetime(series, errors='coerce')
+            # Try to parse as datetime with mixed format support
+            # format='mixed' handles heterogeneous date formats efficiently
+            parsed = pd.to_datetime(series, errors='coerce', format='mixed')
             # If more than 50% successfully parsed, consider it a date column
-            parsed = pd.to_datetime(series, errors='coerce')
             non_null_pct = parsed.notna().sum() / len(series)
             return non_null_pct > 0.5
         except:
@@ -154,7 +154,7 @@ class DataProfiler:
         invalid_dates = 0
         for col in self.df.columns:
             if self._is_date_column(self.df[col]):
-                parsed = pd.to_datetime(self.df[col], errors='coerce')
+                parsed = pd.to_datetime(self.df[col], errors='coerce', format='mixed')
                 invalid_dates += parsed.isna().sum()
 
         # Infinite values
