@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 import pandas as pd
 import io
 import time
-from ..models import AnalysisResponse
+from ..models import AnalysisResponse, AIInsight
 from ..services.data_profiler import DataProfiler
 from ..services.kpi_engine import KPIEngine
 from ..services.trend_analyzer import TrendAnalyzer
@@ -83,7 +83,9 @@ async def analyze_dataset(file: UploadFile = File(...)):
             "findings": [finding.model_dump() for finding in findings],
             "evidence": {eid: ev.model_dump() for eid, ev in evidence.items()}
         }
-        ai_insight = ai_explainer.generate_insight(analysis_summary)
+        ai_insight_dict = ai_explainer.generate_insight(analysis_summary)
+        if ai_insight_dict:
+            ai_insight = ai_insight_dict
     except Exception as e:
         # AI failure should not break the entire analysis
         print(f"AI explanation failed: {str(e)}")

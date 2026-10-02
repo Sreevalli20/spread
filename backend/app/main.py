@@ -25,7 +25,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173,https://spread2.vercel.app")
 
 # Support multiple origins for CORS
 allowed_origins = [origin.strip() for origin in frontend_origin.split(",")]

@@ -18,7 +18,7 @@ class AIExplainer:
             except Exception as e:
                 print(f"Failed to initialize Groq client: {e}")
 
-    def generate_insight(self, analysis_summary: Dict[str, Any]) -> Optional[AIInsight]:
+    def generate_insight(self, analysis_summary: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if not self.client:
             return None
 
@@ -48,21 +48,20 @@ class AIExplainer:
             }
 
             # Build the prompt
-            system_prompt = """You are an explanation layer over verified analytical results from a business data analysis system.
+            system_prompt = """You are DecisionLens, an analytical assistant.
 
-Your role is to:
-1. Provide executive summary of the verified findings
-2. Generate insights that reference ONLY the supplied finding and evidence IDs
-3. Make recommendations ONLY when supported by the supplied evidence
-4. Explicitly state limitations and uncertainties
+Answer using ONLY the supplied uploaded-dataset analysis context.
+The context contains KPIs, findings, trends, anomalies, evidence, and data-quality information.
 
-CRITICAL CONSTRAINTS:
-- You must NOT invent metrics or calculate new business numbers
-- You must NOT introduce facts absent from the supplied analysis
-- You must reference only supplied finding and evidence IDs
-- You must distinguish association from causation
-- If evidence is insufficient, say so explicitly
-- If a recommendation cannot be supported by evidence, do not recommend it
+Use actual numeric values from the context.
+Never invent metrics, numbers, findings, trends, anomalies, products, companies, or conclusions.
+If the answer can be calculated from supplied values, calculate it.
+For why/how questions, connect the explanation to relevant findings and evidence.
+For change-over-time questions, use supplied trends and comparisons.
+For KPI questions, use the corresponding KPI/evidence.
+For recommendations, ground every recommendation in supplied evidence or findings.
+Return valid evidence_ids and finding_ids for material claims.
+Only state that evidence is insufficient when the supplied context genuinely contains no relevant information.
 
 Your response must be a valid JSON object with this exact structure:
 {
@@ -126,7 +125,8 @@ Respond with valid JSON only."""
             # Validate with Pydantic using the canonical AIInsight model
             validated = AIInsight(**parsed)
 
-            return validated
+            # Return as dict for Pydantic to validate in response model
+            return validated.model_dump()
 
         except Exception as e:
             print(f"AI insight generation failed: {e}")
@@ -142,11 +142,46 @@ Respond with valid JSON only."""
             }
 
         try:
+            kpis = analysis_data.get('kpis', [])
             findings = analysis_data.get('findings', [])
+            trends = analysis_data.get('trends', [])
+            anomalies = analysis_data.get('anomalies', [])
             evidence = analysis_data.get('evidence', {})
 
-            # Create compact analytical package
+            # Create compact analytical package with KPIs, trends, and anomalies
             analytical_package = {
+                "kpis": [
+                    {
+                        "id": k["id"],
+                        "name": k["name"],
+                        "value": k["value"],
+                        "unit": k["unit"],
+                        "calculation": k["calculation"]
+                    }
+                    for k in kpis
+                ],
+                "trends": [
+                    {
+                        "metric": t["metric"],
+                        "direction": t["direction"],
+                        "strength": t["strength"],
+                        "recent_change": t["recent_change"],
+                        "evidence_id": t["evidence_id"]
+                    }
+                    for t in trends
+                ],
+                "anomalies": [
+                    {
+                        "id": a["id"],
+                        "metric": a["metric"],
+                        "observed_value": a["observed_value"],
+                        "expected_value": a["expected_value"],
+                        "deviation": a["deviation"],
+                        "severity": a["severity"],
+                        "evidence_id": a["evidence_id"]
+                    }
+                    for a in anomalies
+                ],
                 "findings": [
                     {
                         "id": f["id"],
@@ -161,15 +196,20 @@ Respond with valid JSON only."""
                 "evidence_ids": list(evidence.keys())
             }
 
-            system_prompt = """You are an explanation layer over verified analytical results.
+            system_prompt = """You are DecisionLens, an analytical assistant.
 
-Answer the user's question based ONLY on the supplied analysis.
+Answer using ONLY the supplied uploaded-dataset analysis context.
+The context contains KPIs, findings, trends, anomalies, evidence, and data-quality information.
 
-CRITICAL CONSTRAINTS:
-- You must NOT invent metrics or calculate new numbers
-- You must reference only supplied finding and evidence IDs
-- If evidence is insufficient to answer, say so explicitly
-- Distinguish association from causation
+Use actual numeric values from the context.
+Never invent metrics, numbers, findings, trends, anomalies, products, companies, or conclusions.
+If the answer can be calculated from supplied values, calculate it.
+For why/how questions, connect the explanation to relevant findings and evidence.
+For change-over-time questions, use supplied trends and comparisons.
+For KPI questions, use the corresponding KPI/evidence.
+For recommendations, ground every recommendation in supplied evidence or findings.
+Return valid evidence_ids and finding_ids for material claims.
+Only state that evidence is insufficient when the supplied context genuinely contains no relevant information.
 
 Your response must be valid JSON with this structure:
 {
