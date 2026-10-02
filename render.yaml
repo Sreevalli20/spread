@@ -1,15 +1,4 @@
 services:
-  # Frontend - Static Site
-  - type: web
-    name: decisionlens-frontend
-    env: static
-    buildCommand: npm ci && npm run build
-    publishDir: dist
-    rootDir: frontend
-    envVars:
-      - key: VITE_API_URL
-        value: https://decisionlens-backend.onrender.com
-
   # Backend - Web Service
   - type: web
     name: decisionlens-backend
@@ -22,7 +11,7 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-20b
       - key: FRONTEND_ORIGIN
         value: https://decisionlens-two.vercel.app,http://localhost:5173
       - key: PORT

@@ -1,33 +1,55 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle2, XCircle, Loader2 as LucideLoader2 } from "lucide-react";
 import type { AnalysisResponse } from "@/types";
 
 export default function ReportPage() {
-  const navigate = useNavigate();
   const [analysisData, setAnalysisData] = useState<AnalysisResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("analysisResult");
     if (stored) {
       setAnalysisData(JSON.parse(stored));
-    } else {
-      navigate("/analyze");
     }
-  }, [navigate]);
+    setLoading(false);
+  }, []);
 
   const handlePrint = () => {
     window.print();
   };
 
-  if (!analysisData) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
+          <LucideLoader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p>Loading report...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analysisData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>No Analysis Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                No analysis data found. Please upload a dataset and run an analysis first.
+              </p>
+              <Link to="/analyze">
+                <Button>Upload Dataset</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -94,13 +116,24 @@ export default function ReportPage() {
         </div>
 
         {/* Executive Summary */}
-        {ai_insight && (
+        {ai_insight ? (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Executive Summary</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{ai_insight.executive_summary}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10 dark:border-yellow-900">
+            <CardHeader>
+              <CardTitle>Executive Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                AI-generated executive summary is not available. The deterministic analysis below provides all KPIs, trends, anomalies, and findings based on your data.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -243,25 +276,49 @@ export default function ReportPage() {
         </Card>
 
         {/* Recommendations */}
-        {ai_insight && ai_insight.recommendations.length > 0 && (
-          <Card className="mb-6">
+        {ai_insight ? (
+          ai_insight.recommendations.length > 0 ? (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {ai_insight.recommendations.map((rec, idx) => (
+                    <div key={idx} className="border rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge>{rec.priority}</Badge>
+                      </div>
+                      <p className="font-medium">{rec.recommendation}</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Supported by {rec.evidence_ids.length} evidence object(s)
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10 dark:border-yellow-900">
+              <CardHeader>
+                <CardTitle>Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  AI-generated recommendations are not available. Review the Decision Signals and Evidence sections below for actionable insights from your data.
+                </p>
+              </CardContent>
+            </Card>
+          )
+        ) : (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10 dark:border-yellow-900">
             <CardHeader>
               <CardTitle>Recommendations</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {ai_insight.recommendations.map((rec, idx) => (
-                  <div key={idx} className="border rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge>{rec.priority}</Badge>
-                    </div>
-                    <p className="font-medium">{rec.recommendation}</p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Supported by {rec.evidence_ids.length} evidence object(s)
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-muted-foreground">
+                AI-generated recommendations are not available. Review the Decision Signals and Evidence sections below for actionable insights from your data.
+              </p>
             </CardContent>
           </Card>
         )}

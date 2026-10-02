@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, TrendingUp, AlertTriangle, BarChart3, MessageSquare, FileText, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, AlertTriangle, BarChart3, MessageSquare, FileText, CheckCircle2, XCircle, Loader2 as LucideLoader2 } from "lucide-react";
 import type { AnalysisResponse } from "@/types";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const [analysisData, setAnalysisData] = useState<AnalysisResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "signals" | "evidence" | "recommendations" | "quality">("overview");
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null);
 
@@ -16,17 +16,38 @@ export default function DashboardPage() {
     const stored = sessionStorage.getItem("analysisResult");
     if (stored) {
       setAnalysisData(JSON.parse(stored));
-    } else {
-      navigate("/analyze");
     }
-  }, [navigate]);
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LucideLoader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Loading analysis...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!analysisData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p>Loading analysis...</p>
+        <div className="text-center max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>No Analysis Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                No analysis data found. Please upload a dataset and run an analysis first.
+              </p>
+              <Link to="/analyze">
+                <Button>Upload Dataset</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -76,6 +97,12 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Link to="/ask">
+              <Button variant="outline">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Ask DecisionLens
+              </Button>
+            </Link>
             <Link to="/report">
               <Button variant="outline">
                 <FileText className="w-4 h-4 mr-2" />
@@ -569,21 +596,4 @@ export default function DashboardPage() {
   );
 }
 
-function Loader2({ className }: { className?: string }) {
-  return (
-    <svg
-      className={`animate-spin ${className}`}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  );
-}
+

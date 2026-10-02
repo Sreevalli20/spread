@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import UploadPage from "./pages/UploadPage";
 import DashboardPage from "./pages/DashboardPage";
 import ReportPage from "./pages/ReportPage";
+import AskPage from "./pages/AskPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/analyze" element={<UploadPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/ask" element={<AskPage />} />
         <Route path="/report" element={<ReportPage />} />
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
