@@ -47,7 +47,7 @@ class AnomalyDetector:
         anomalies = []
         series = self.df[metric_col].dropna()
 
-        if len(series) < 10:
+        if len(series) < 5:
             return anomalies
 
         # Method 1: IQR (Interquartile Range)
@@ -61,7 +61,11 @@ class AnomalyDetector:
 
         for idx, value in iqr_anomalies.head(5).items():
             expected = (q1 + q3) / 2
-            deviation = abs(value - expected) / expected if expected != 0 else 0
+            if expected != 0:
+                deviation = abs(value - expected) / expected
+            else:
+                # When expected is 0, use absolute deviation from median
+                deviation = abs(value - series.median()) / (series.std() if series.std() > 0 else 1)
 
             severity = self._calculate_severity(deviation)
 
