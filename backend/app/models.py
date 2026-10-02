@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
@@ -159,6 +159,24 @@ class AIInsight(BaseModel):
     insights: List[Dict[str, Any]]
     recommendations: List[Dict[str, Any]]
     limitations: List[str]
+
+    @field_validator('insights')
+    @classmethod
+    def validate_insights(cls, v):
+        for insight in v:
+            if 'evidence_ids' not in insight:
+                raise ValueError("Each insight must include evidence_ids")
+            if 'finding_ids' not in insight:
+                raise ValueError("Each insight must include finding_ids")
+        return v
+
+    @field_validator('recommendations')
+    @classmethod
+    def validate_recommendations(cls, v):
+        for rec in v:
+            if 'evidence_ids' not in rec:
+                raise ValueError("Each recommendation must include evidence_ids")
+        return v
 
 
 class AnalysisResponse(BaseModel):

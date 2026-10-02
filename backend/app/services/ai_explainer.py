@@ -3,31 +3,7 @@ from typing import Dict, List, Any, Optional
 from groq import Groq
 from pydantic import BaseModel, Field, field_validator
 import json
-
-
-class AIInsightResponse(BaseModel):
-    executive_summary: str = Field(..., description="Brief executive summary of the analysis")
-    insights: List[Dict[str, Any]] = Field(..., description="List of key insights with evidence references")
-    recommendations: List[Dict[str, Any]] = Field(..., description="Actionable recommendations with evidence support")
-    limitations: List[str] = Field(..., description="Limitations of the analysis")
-
-    @field_validator('insights')
-    @classmethod
-    def validate_insights(cls, v):
-        for insight in v:
-            if 'evidence_ids' not in insight:
-                raise ValueError("Each insight must include evidence_ids")
-            if 'finding_ids' not in insight:
-                raise ValueError("Each insight must include finding_ids")
-        return v
-
-    @field_validator('recommendations')
-    @classmethod
-    def validate_recommendations(cls, v):
-        for rec in v:
-            if 'evidence_ids' not in rec:
-                raise ValueError("Each recommendation must include evidence_ids")
-        return v
+from ..models import AIInsight
 
 
 class AIExplainer:
@@ -42,7 +18,7 @@ class AIExplainer:
             except Exception as e:
                 print(f"Failed to initialize Groq client: {e}")
 
-    def generate_insight(self, analysis_summary: Dict[str, Any]) -> Optional[AIInsightResponse]:
+    def generate_insight(self, analysis_summary: Dict[str, Any]) -> Optional[AIInsight]:
         if not self.client:
             return None
 
@@ -147,8 +123,8 @@ Respond with valid JSON only."""
             for rec in parsed.get('recommendations', []):
                 rec['evidence_ids'] = [eid for eid in rec.get('evidence_ids', []) if eid in valid_evidence_ids]
 
-            # Validate with Pydantic
-            validated = AIInsightResponse(**parsed)
+            # Validate with Pydantic using the canonical AIInsight model
+            validated = AIInsight(**parsed)
 
             return validated
 
