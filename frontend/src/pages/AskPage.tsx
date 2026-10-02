@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Send, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, AlertCircle, CheckCircle2, Sparkles, MessageSquare } from "lucide-react";
 import { askQuestion } from "@/lib/api";
 import type { AnalysisResponse, AskResponse } from "@/types";
 
@@ -42,69 +42,90 @@ export default function AskPage() {
     }
   };
 
+  const suggestedQuestions = [
+    "What is driving the biggest business risk?",
+    "Where are the strongest trends?",
+    "Which anomalies deserve attention?",
+    "Explain the biggest change in profitability.",
+  ];
+
   if (!analysisData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p>Loading analysis...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading analysis...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      <header className="border-b bg-white/50 dark:bg-slate-950/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold">Ask DecisionLens</h1>
-              <p className="text-sm text-muted-foreground">{analysisData.dataset_name}</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-xl font-semibold">Ask DecisionLens</h1>
+                <p className="text-sm text-muted-foreground">{analysisData.dataset_name}</p>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
+          {/* Header Description */}
+          <div className="text-center mb-8">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Ask about your data</h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Ask questions about the dataset and get evidence-grounded answers.
+              Every response is based on verified findings from your analysis.
+            </p>
+          </div>
+
           {/* Question Input */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ask a Question</CardTitle>
-              <CardDescription>
-                Ask DecisionLens about your data analysis. The AI will provide grounded answers based on the evidence and findings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Card className="border shadow-elevated">
+            <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <textarea
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="e.g., What are the main revenue trends? Which segments are performing best?"
-                    className="w-full min-h-[120px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700"
+                    placeholder="Ask about revenue, profitability, anomalies, trends..."
+                    className="w-full min-h-[120px] p-4 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background transition-all"
                     disabled={loading}
                   />
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-muted-foreground">
-                    Based on {analysisData.findings.length} findings and {Object.keys(analysisData.evidence).length} evidence objects
+                    Based on <span className="font-medium">{analysisData.findings.length}</span> findings and{" "}
+                    <span className="font-medium">{Object.keys(analysisData.evidence).length}</span> evidence objects
                   </p>
-                  <Button type="submit" disabled={loading || !question.trim()}>
+                  <Button
+                    type="submit"
+                    disabled={loading || !question.trim()}
+                    className="h-10 px-6 shadow-subtle"
+                  >
                     {loading ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Thinking...
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
+                        <Send className="h-4 w-4 mr-2" />
                         Ask
                       </>
                     )}
@@ -116,14 +137,14 @@ export default function AskPage() {
 
           {/* Error State */}
           {error && (
-            <Card className="border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900">
-              <CardContent className="pt-6">
+            <Card className="border border-destructive/50 bg-destructive/5">
+              <CardContent className="p-6">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-red-900 dark:text-red-300 mb-1">Error</h3>
-                    <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
-                    <p className="text-xs text-red-600 dark:text-red-500 mt-2">
+                    <h3 className="font-semibold text-destructive mb-1">Unable to get answer</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{error}</p>
+                    <p className="text-xs text-muted-foreground">
                       The AI service may be temporarily unavailable. Your deterministic analysis is still available in the Dashboard.
                     </p>
                   </div>
@@ -134,25 +155,31 @@ export default function AskPage() {
 
           {/* Answer Display */}
           {answer && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <CardTitle>Answer</CardTitle>
+            <Card className="border shadow-elevated">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center gap-2 pb-4 border-b">
+                  <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold">Answer</h3>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{answer.answer}</p>
+
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                    {answer.answer}
+                  </p>
                 </div>
 
                 {/* Evidence References */}
                 {answer.evidence_ids.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3">Supported by Evidence</h4>
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                      Supported by Evidence
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {answer.evidence_ids.map((eid) => (
-                        <Badge key={eid} variant="outline" className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <Badge key={eid} variant="outline" className="text-xs font-mono">
                           {eid.slice(0, 12)}...
                         </Badge>
                       ))}
@@ -163,10 +190,10 @@ export default function AskPage() {
                 {/* Finding References */}
                 {answer.finding_ids.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3">Related Findings</h4>
+                    <h4 className="text-sm font-semibold mb-3">Related Findings</h4>
                     <div className="flex flex-wrap gap-2">
                       {answer.finding_ids.map((fid) => (
-                        <Badge key={fid} variant="outline" className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <Badge key={fid} variant="outline" className="text-xs font-mono">
                           {fid.slice(0, 12)}...
                         </Badge>
                       ))}
@@ -176,8 +203,8 @@ export default function AskPage() {
 
                 {/* Limitations */}
                 {answer.limitations.length > 0 && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-semibold mb-3">Limitations</h4>
+                  <div className="pt-4 border-t">
+                    <h4 className="text-sm font-semibold mb-3">Limitations</h4>
                     <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                       {answer.limitations.map((limit, idx) => (
                         <li key={idx}>{limit}</li>
@@ -189,35 +216,25 @@ export default function AskPage() {
             </Card>
           )}
 
-          {/* Quick Questions */}
+          {/* Suggested Questions */}
           {!answer && !loading && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Suggested Questions</CardTitle>
-                <CardDescription>Click to ask about common topics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {[
-                    "What are the main revenue trends?",
-                    "Which segments are performing best?",
-                    "What anomalies were detected?",
-                    "What are the key risks?",
-                    "How is profitability trending?",
-                    "What are the data quality issues?",
-                  ].map((suggested) => (
-                    <Button
-                      key={suggested}
-                      variant="outline"
-                      className="text-left justify-start h-auto py-3 px-4"
-                      onClick={() => setQuestion(suggested)}
-                    >
-                      {suggested}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div>
+              <h3 className="text-sm font-semibold mb-4 text-muted-foreground">
+                Suggested questions
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {suggestedQuestions.map((suggested) => (
+                  <Button
+                    key={suggested}
+                    variant="outline"
+                    className="text-left justify-start h-auto py-3 px-4 text-sm border hover:border-primary/50 transition-colors"
+                    onClick={() => setQuestion(suggested)}
+                  >
+                    {suggested}
+                  </Button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </main>
