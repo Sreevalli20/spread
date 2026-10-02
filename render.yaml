@@ -1,0 +1,30 @@
+services:
+  # Frontend - Static Site
+  - type: web
+    name: decisionlens-frontend
+    env: static
+    buildCommand: npm ci && npm run build
+    publishDir: dist
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        value: https://decisionlens-backend.onrender.com
+
+  # Backend - Web Service
+  - type: web
+    name: decisionlens-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    rootDir: backend
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: FRONTEND_ORIGIN
+        value: https://decisionlens-frontend.onrender.com
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health
